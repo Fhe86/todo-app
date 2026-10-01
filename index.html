@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#7B4FD6">
+<title>Meine To-Do-App</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%237B4FD6'/%3E%3Crect x='14' y='15' width='36' height='8' rx='4' fill='%23fff'/%3E%3Crect x='14' y='28' width='36' height='8' rx='4' fill='%23fff' opacity='.75'/%3E%3Crect x='14' y='41' width='24' height='8' rx='4' fill='%23fff' opacity='.5'/%3E%3Ccircle cx='47' cy='45' r='9' fill='%23FF8C1A'/%3E%3Cpath d='M42.5 45.5l3 3 6-6.5' stroke='%23fff' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#F7F4FF;
+  --card:#FFFFFF;
+  --ink:#1E2142;
+  --muted:#5F6384;
+  --line:#E3DDF5;
+  --accent:#7B4FD6;
+  --accent-soft:#EFE8FF;
+  --ok:#1F9D63;
+  --ok-soft:#E3F6EC;
+  --warn-soft:#FFF4DE;
+  --c-event:#FFBF00;
+  --c-sense:#4CBFE6;
+  --c-var:#FF8C1A;
+  --c-list:#FF661A;
+  --c-look:#9966FF;
+  --c-ctrl:#FFAB19;
+  --c-op:#59C059;
+  --radius:20px;
+  --font:ui-rounded,"SF Pro Rounded","Avenir Next",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);
+  font-size:18px;line-height:1.55;
+  padding:0 max(16px,env(safe-area-inset-right)) 80px max(16px,env(safe-area-inset-left));
+}
+.wrap{max-width:780px;margin:0 auto}
+
+/* Kopf */
+header{padding:36px 0 18px}
+.kicker{display:inline-block;font-size:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:5px 12px;border-radius:99px}
+h1{font-size:clamp(32px,6vw,48px);line-height:1.1;margin:14px 0 10px;letter-spacing:-.02em}
+.lead{font-size:20px;color:var(--muted);margin:0;max-width:34em}
+
+/* Fortschritt */
+.progress{
+  position:sticky;top:0;z-index:20;margin:18px -16px 8px;padding:12px 16px;
+  background:rgba(247,244,255,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.progress-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:15px;font-weight:700}
+.progress-row span:last-child{color:var(--muted);font-weight:600}
+.bar{height:12px;border-radius:99px;background:var(--line);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--c-var));border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.2,1)}
+
+/* Merke */
+.merke{display:grid;gap:12px;margin:22px 0 6px;grid-template-columns:1fr 1fr}
+.merke div{background:var(--card);border-radius:var(--radius);padding:16px 18px;border:2px solid var(--line)}
+.merke b{display:block;font-size:20px;margin-bottom:2px}
+.merke .v{border-color:var(--c-var)}
+.merke .l{border-color:var(--c-list)}
+.merke p{margin:0;font-size:16px;color:var(--muted)}
+.merke svg{width:44px;height:44px;margin-bottom:6px}
+
+/* Stufen */
+.steps{list-style:none;margin:30px 0 0;padding:0;position:relative}
+.step{position:relative;padding:0 0 28px 68px}
+.step::before{
+  content:"";position:absolute;left:23px;top:50px;bottom:-2px;width:4px;border-radius:2px;background:var(--line);
+}
+.step:last-child::before{display:none}
+.badge{
+  position:absolute;left:0;top:0;width:50px;height:50px;border-radius:50%;
+  background:var(--accent);color:#fff;font-weight:800;font-size:22px;display:grid;place-items:center;
+  box-shadow:0 4px 0 rgba(123,79,214,.25);transition:background .3s;
+}
+.step.done .badge{background:var(--ok);box-shadow:0 4px 0 rgba(31,157,99,.25)}
+.step.done::before{background:var(--ok)}
+.step.done .badge span{display:none}
+.step .tick{display:none;width:26px;height:26px}
+.step.done .tick{display:block}
+.card{background:var(--card);border-radius:var(--radius);padding:22px 22px 18px;box-shadow:0 2px 0 var(--line),0 10px 30px -18px rgba(60,40,120,.35)}
+.card h2{margin:0 0 2px;font-size:26px;line-height:1.2;letter-spacing:-.01em}
+.tag{display:inline-block;font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 10px;border-radius:99px;margin-bottom:8px}
+.tag.must{background:var(--accent-soft);color:var(--accent)}
+.tag.pick{background:var(--warn-soft);color:#A25B00}
+.tag.mine{background:#E3F4FB;color:#146E8F}
+.sub{margin:0 0 14px;color:var(--muted);font-size:17px}
+
+/* Aufgaben */
+.task{
+  display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line);
+}
+.task:first-of-type{border-top:0}
+.task input{position:absolute;opacity:0;pointer-events:none}
+.box{
+  flex:none;width:34px;height:34px;border-radius:10px;border:3px solid #C9BFEA;background:#fff;
+  display:grid;place-items:center;cursor:pointer;margin-top:1px;transition:all .2s;
+}
+.box svg{width:20px;height:20px;stroke:#fff;stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:26;stroke-dashoffset:26;transition:stroke-dashoffset .25s .05s}
+.task input:checked + .box{background:var(--ok);border-color:var(--ok)}
+.task input:checked + .box svg{stroke-dashoffset:0}
+.task input:focus-visible + .box{outline:3px solid var(--accent);outline-offset:2px}
+.task .body{flex:1;min-width:0}
+.task .body > p{margin:0 0 6px}
+.task.checked .body > p:first-child{color:var(--muted)}
+.hit{display:inline-block;background:var(--accent-soft);color:#4E2BA8;padding:0 8px;border-radius:8px;font-weight:700;white-space:nowrap}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:10px 20px;border-radius:14px;
+  background:var(--accent);color:#fff;text-decoration:none;font-weight:800;font-size:17px;font-family:inherit;
+  box-shadow:0 4px 0 #5A35A8;border:0;cursor:pointer;margin:4px 0;
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #5A35A8}
+.btn.ghost{background:#fff;color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.btn.ghost:active{box-shadow:0 0 0 2px var(--accent) inset}
+
+/* Tipps */
+details{margin:8px 0 2px;border-radius:14px;background:var(--warn-soft)}
+summary{cursor:pointer;list-style:none;padding:12px 16px;min-height:46px;font-weight:700;color:#8A4F00;display:flex;align-items:center;gap:8px}
+summary::-webkit-details-marker{display:none}
+summary::before{content:"?";display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#F2A33A;color:#fff;font-size:15px;font-weight:800;flex:none}
+details[open] summary::before{content:"\2013"}
+details .in{padding:0 16px 14px;font-size:16.5px}
+details .in p{margin:0 0 8px}
+
+/* Quiz */
+.quiz{margin-top:6px;background:var(--accent-soft);border-radius:16px;padding:16px 18px}
+.quiz > b{display:block;margin-bottom:8px}
+.opt{display:flex;align-items:center;gap:12px;min-height:50px;padding:10px 14px;margin:8px 0;border-radius:14px;background:#fff;border:2px solid transparent;cursor:pointer;font-weight:600;font-size:17px;width:100%;text-align:left;font-family:inherit;color:var(--ink)}
+.opt:active{transform:scale(.99)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:#E26A5A;background:#FDECE9}
+.fb{margin:6px 0 0;font-size:16px;min-height:1.4em;font-weight:600}
+.fb.ok{color:var(--ok)}
+.fb.no{color:#C4473A}
+
+
+/* Zuordnung Variable/Liste */
+.sort{margin:8px 0;display:grid;gap:8px}
+.srow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--accent-soft);border-radius:14px;padding:10px 14px;border:2px solid transparent}
+.srow > span:first-child{flex:1 1 220px;font-weight:600;font-size:17px}
+.pair{display:flex;gap:8px}
+.pair button{min-height:46px;min-width:96px;border-radius:12px;border:2px solid #fff;background:#fff;font-family:inherit;font-weight:800;font-size:16px;cursor:pointer;color:var(--ink)}
+.pair button[data-pick=v]{border-color:var(--c-var)}
+.pair button[data-pick=l]{border-color:var(--c-list)}
+.pair button:active{transform:scale(.97)}
+.srow.right{background:var(--ok-soft);border-color:var(--ok)}
+.srow.wrong{background:#FDECE9;border-color:#E26A5A}
+.srow.right .pair button:not(.picked),.srow.wrong .pair button.picked{opacity:.45}
+
+/* Extra-Karten */
+.extras{display:grid;gap:14px;margin-top:6px}
+.extra{border:2px solid var(--line);border-radius:18px;padding:14px 16px 6px;background:#FCFBFF}
+.extra .head{display:flex;align-items:center;gap:12px}
+.extra h3{margin:0;font-size:20px;flex:1}
+.lvl{font-size:13px;font-weight:800;color:var(--muted);white-space:nowrap}
+.extra .task{border-top:0;padding:8px 0 10px}
+
+/* Scratch-Blöcke */
+.stack{display:inline-block;max-width:100%;margin:8px 0 10px;filter:drop-shadow(0 2px 0 rgba(0,0,0,.18));font-family:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif}
+.b{
+  display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 12px;min-height:38px;
+  color:#fff;font-weight:700;font-size:15px;line-height:1.25;background:var(--c);
+  border-top:1px solid rgba(255,255,255,.28);text-shadow:0 1px 0 rgba(0,0,0,.12);
+}
+.stack > .b:first-child, .stack > .c:first-child > .b:first-child{border-top:0;border-radius:8px 8px 0 0}
+.stack > .b:last-child{border-radius:0 0 8px 8px}
+.stack > .b:only-child{border-radius:8px}
+.b.hat{padding-top:20px;border-radius:26px 26px 0 0 / 18px 18px 0 0 !important;min-height:46px}
+.ev{--c:var(--c-event)} .sense{--c:var(--c-sense)} .var{--c:var(--c-var)} .list{--c:var(--c-list)}
+.look{--c:var(--c-look)} .ctrl{--c:var(--c-ctrl)} .op{--c:var(--c-op)}
+.c{--c:var(--c-ctrl)}
+.c > .b{background:var(--c)}
+.c .arm{background:var(--c);padding-left:18px}
+.c .arm > .b{border-radius:0}
+.c .foot{height:20px;background:var(--c);border-radius:0 0 8px 8px;border-top:1px solid rgba(255,255,255,.2)}
+.in{background:#fff;color:#575E75;border-radius:14px;padding:1px 11px;min-width:26px;text-align:center;text-shadow:none;font-weight:600}
+.dd{background:rgba(0,0,0,.2);color:#fff;border-radius:6px;padding:1px 9px;font-weight:700}
+.dd::after{content:" \25BE";font-size:11px}
+.rep{background:var(--c-r,var(--c-sense));color:#fff;border-radius:14px;padding:1px 10px;border:1px solid rgba(0,0,0,.15);display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+.rep.var{--c-r:var(--c-var)} .rep.list{--c-r:var(--c-list)} .rep.op{--c-r:var(--c-op)}
+.rep.sense{--c-r:var(--c-sense)}
+.cond{background:var(--c-op);border:1px solid rgba(0,0,0,.15);color:#fff;border-radius:6px 6px 6px 6px / 14px 14px 14px 14px;padding:1px 10px;display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;clip-path:polygon(10px 0,calc(100% - 10px) 0,100% 50%,calc(100% - 10px) 100%,10px 100%,0 50%)}
+.flag{width:16px;height:16px;display:inline-block;vertical-align:-3px}
+.where{display:inline-flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--muted);margin:2px 0}
+.where i{font-style:normal;background:var(--accent-soft);color:var(--accent);border-radius:8px;padding:2px 10px}
+
+/* Fußzeile */
+.final{background:linear-gradient(135deg,#7B4FD6,#9966FF);color:#fff;border-radius:var(--radius);padding:24px 24px 22px;margin-top:6px}
+.final h2{margin:0 0 6px;font-size:26px}
+.final p{margin:0 0 8px;color:rgba(255,255,255,.92)}
+footer{margin-top:30px;text-align:center;font-size:14px;color:var(--muted)}
+
+@media (max-width:620px){
+  body{font-size:17px}
+  .merke{grid-template-columns:1fr}
+  .step{padding-left:0;padding-top:0}
+  .step::before{display:none}
+  .badge{position:static;margin:0 0 -22px 14px;position:relative;z-index:2;width:44px;height:44px;font-size:20px}
+  .card{padding:30px 16px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important}}
+@media print{.progress{display:none}details{display:block}.step{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="kicker">Informatik 8 · Programmieren</span>
+  <h1>Baue deine eigene To-Do-App</h1>
+  <p class="lead">Am Ende hast du eine App, die deine Aufgaben speichert. Mit deinem eigenen Bild, deinen eigenen Ideen und einer Datei, die du mitnehmen kannst.</p>
+</header>
+
+<div class="progress" aria-live="polite">
+  <div class="progress-row"><span id="pTitle">Dein Fortschritt</span><span id="pCount">0 von 0 geschafft</span></div>
+  <div class="bar"><i id="pBar"></i></div>
+</div>
+
+<section class="merke" aria-label="Das lernst du">
+  <div class="v">
+    <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="5" y="10" width="34" height="24" rx="6" fill="#FF8C1A"/><rect x="11" y="16" width="22" height="12" rx="4" fill="#fff"/><text x="22" y="26.5" font-size="10" text-anchor="middle" font-family="Helvetica,Arial" font-weight="700" fill="#575E75">42</text></svg>
+    <b>Variable</b>
+    <p>Ein Fach mit einem Namen. Darin liegt genau ein Wert, zum Beispiel deine Punkte.</p>
+  </div>
+  <div class="l">
+    <svg viewBox="0 0 44 44" aria-hidden="true"><rect x="5" y="6" width="34" height="32" rx="6" fill="#FF661A"/><rect x="10" y="11" width="24" height="6" rx="3" fill="#fff"/><rect x="10" y="19" width="24" height="6" rx="3" fill="#fff"/><rect x="10" y="27" width="24" height="6" rx="3" fill="#fff"/></svg>
+    <b>Liste</b>
+    <p>Ein Regal mit nummerierten Fächern. Jedes Fach hat eine Nummer und einen Eintrag.</p>
+  </div>
+</section>
+
+<ol class="steps" id="steps">
+
+<!-- STUFE 0 -->
+<li class="step" data-step>
+  <div class="badge"><span>0</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag must">Pflicht</span>
+    <h2>Vorbereiten</h2>
+    <p class="sub">Du bekommst eine Vorlage mit zwei Buttons und einer leeren Liste. Die Blöcke baust du selbst.</p>
+
+    <label class="task"><input type="checkbox" data-id="s0a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p>Öffne die Vorlage und tippe auf <span class="hit">Remix</span>. Jetzt hast du deine eigene Kopie.</p>
+      <a class="btn" href="https://scratch.mit.edu/projects/596795564/" target="_blank" rel="noopener">Vorlage öffnen</a></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s0b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p>Gib deinem Projekt oben einen Namen, zum Beispiel <span class="hit">To-Do von Alex</span> (nimm einen Spitznamen).</p></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s0c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p>Schau dir die Bühne an: ein grüner Button, ein roter Button und eine Liste namens <span class="hit">todo</span>. Noch passiert nichts, wenn du tippst. Das ändern wir jetzt.</p></span></label>
+  </div>
+</li>
+
+<!-- STUFE 1: Variable und Liste kapieren -->
+<li class="step" data-step>
+  <div class="badge"><span>1</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag must">Pflicht</span>
+    <h2>Erst ausprobieren, dann bauen</h2>
+    <p class="sub">Bevor du die App baust, testest du Variable und Liste in Scratch. Das dauert nur ein paar Minuten und du brauchst es für alles Weitere.</p>
+
+    <label class="task"><input type="checkbox" data-id="s1a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Variable erleben.</b> Reiter <span class="hit">Variablen</span>, <span class="hit">Neue Variable</span>, Name <span class="hit">punkte</span>. Setze den Haken davor. Auf der Bühne erscheint ein Anzeigefeld.</p>
+      <p>Jetzt kommt der Trick: Du kannst einen Block <b>direkt in der Blockpalette antippen</b>, dann führt Scratch ihn sofort aus. Tippe nacheinander auf diese Blöcke und beobachte das Feld auf der Bühne:</p>
+      <div class="stack">
+        <div class="b var">setze <span class="dd">punkte</span> auf <span class="in">5</span></div>
+        <div class="b var">ändere <span class="dd">punkte</span> um <span class="in">1</span></div>
+        <div class="b var">setze <span class="dd">punkte</span> auf <span class="in">20</span></div>
+      </div>
+      <div class="quiz" data-quiz="var1">
+        <b>Du tippst auf &quot;setze punkte auf 20&quot;, obwohl vorher 6 drin stand. Was passiert mit der 6?</b>
+        <button class="opt" data-right="true" type="button">Sie wird überschrieben und ist weg</button>
+        <button class="opt" data-right="false" type="button">Sie bleibt zusätzlich gespeichert</button>
+        <button class="opt" data-right="false" type="button">Scratch meldet einen Fehler</button>
+        <p class="fb" aria-live="polite"></p>
+      </div></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s1b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Liste erleben.</b> Im selben Reiter: <span class="hit">Neue Liste</span>, Name <span class="hit">einkauf</span>, Haken davor. Auf der Bühne erscheint ein leeres Regal. Ändere den Text im Block, tippe ihn an und wiederhole das dreimal mit anderen Wörtern:</p>
+      <div class="stack">
+        <div class="b list">füge <span class="in">Brot</span> zu <span class="dd">einkauf</span> hinzu</div>
+      </div>
+      <p>Dann tippe auf diese beiden Blöcke. Eine kleine Sprechblase zeigt dir das Ergebnis:</p>
+      <p><span class="rep list" style="padding:5px 14px;margin:2px 6px 6px 0;font-weight:700;font-size:15px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">Element <span class="in">2</span> von <span class="dd">einkauf</span></span>
+      <span class="rep list" style="padding:5px 14px;margin:2px 0 6px;font-weight:700;font-size:15px;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif">Länge von <span class="dd">einkauf</span></span></p>
+      <p>Schau dir die Liste auf der Bühne an: Links neben jedem Eintrag steht eine <b>Nummer</b>. Sie sagt dir, in welchem Fach des Regals der Eintrag liegt.</p>
+      <div class="quiz" data-quiz="liste1">
+        <b>Was liefert &quot;Länge von einkauf&quot;?</b>
+        <button class="opt" data-right="false" type="button">Den längsten Eintrag</button>
+        <button class="opt" data-right="true" type="button">Die Anzahl der Einträge</button>
+        <button class="opt" data-right="false" type="button">Den letzten Eintrag</button>
+        <p class="fb" aria-live="polite"></p>
+      </div></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s1c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Variable oder Liste?</b> Entscheide für jeden Fall, was besser passt.</p>
+      <div class="sort" data-sort>
+        <div class="srow" data-answer="v"><span>Dein aktueller Punktestand im Spiel</span><span class="pair"><button type="button" data-pick="v">Variable</button><button type="button" data-pick="l">Liste</button></span></div>
+        <div class="srow" data-answer="l"><span>Alle Hausaufgaben der Woche</span><span class="pair"><button type="button" data-pick="v">Variable</button><button type="button" data-pick="l">Liste</button></span></div>
+        <div class="srow" data-answer="v"><span>Die Zahl deiner offenen Aufgaben</span><span class="pair"><button type="button" data-pick="v">Variable</button><button type="button" data-pick="l">Liste</button></span></div>
+        <div class="srow" data-answer="l"><span>Die Namen aller Kinder deiner Klasse</span><span class="pair"><button type="button" data-pick="v">Variable</button><button type="button" data-pick="l">Liste</button></span></div>
+      </div>
+      <div class="quiz" data-quiz="warum">
+        <b>Wir speichern die Aufgaben der App in einer Liste. Warum keine Variable?</b>
+        <button class="opt" data-right="false" type="button">Weil Listen schöner aussehen</button>
+        <button class="opt" data-right="true" type="button">Eine Variable hält nur einen Wert, wir brauchen aber viele Aufgaben</button>
+        <button class="opt" data-right="false" type="button">Weil man Variablen nicht anzeigen kann</button>
+        <p class="fb" aria-live="polite"></p>
+      </div>
+      <details><summary>Zum Merken</summary><div class="in">
+        <p><b>Variable:</b> ein Fach mit Namen, ein Wert. Neuer Wert, alter Wert weg.</p>
+        <p><b>Liste:</b> ein Regal mit nummerierten Fächern, viele Werte. Du erreichst jeden über seine Nummer.</p>
+        <p>Auch die blaue <b>Antwort</b> aus dem Fühlen-Reiter ist eine Variable. Scratch füllt sie selbst, wenn jemand auf eine Frage antwortet.</p></div></details></span></label>
+  </div>
+</li>
+
+<!-- STUFE 2 -->
+<li class="step" data-step>
+  <div class="badge"><span>2</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag must">Pflicht</span>
+    <h2>Deine App funktioniert</h2>
+    <p class="sub">Hinzufügen, Anzeigen, Löschen. Danach kannst du richtig Aufgaben speichern.</p>
+
+    <label class="task"><input type="checkbox" data-id="s2a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Aufgabe hinzufügen.</b> Lege zuerst eine Variable an: Reiter <span class="hit">Variablen</span>, dann <span class="hit">Neue Variable</span>, Name <span class="hit">aufgabe</span>, <span class="hit">für alle Figuren</span>.</p>
+      <p>Wähle dann unten die Figur <span class="hit">Hinzufügen</span> und baue:</p>
+      <div class="stack">
+        <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+        <div class="b sense">frage <span class="in">Was ist zu tun?</span> und warte</div>
+        <div class="b var">setze <span class="dd">aufgabe</span> auf <span class="rep sense">Antwort</span></div>
+        <div class="b list">füge <span class="rep var">aufgabe</span> zu <span class="dd">todo</span> hinzu</div>
+      </div>
+      <p>Test: Tippe auf den grünen Button, schreibe etwas und bestätige. Steht es in der Liste?</p>
+      <details><summary>Hängst du fest?</summary><div class="in">
+        <p>Die Liste ist nicht zu sehen? Setze im Reiter Variablen den Haken vor <b>todo</b>.</p>
+        <p>Nichts passiert? Du musst die Blöcke bei der Figur <b>Hinzufügen</b> bauen, nicht bei der Bühne.</p>
+        <p>Die blaue Antwort findest du im Reiter <b>Fühlen</b>.</p></div></details></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s2b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Liste immer zeigen.</b> Klicke links unten auf die Bühne und baue:</p>
+      <div class="where">Wo? <i>Bühne</i></div><br>
+      <div class="stack">
+        <div class="b hat ev">Wenn <svg class="flag" viewBox="0 0 16 16"><path d="M3 14V2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M3 2.5c3-1.4 5 1.4 9 0v6c-4 1.4-6-1.4-9 0z" fill="#4C9F70" stroke="#fff" stroke-width="1"/></svg> angeklickt wird</div>
+        <div class="b list">zeige Liste <span class="dd">todo</span></div>
+      </div>
+      <p>Tippe auf die grüne Flagge oben über der Bühne. Die Liste erscheint.</p></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s2c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Aufgabe löschen.</b> Wähle die Figur <span class="hit">Entfernen</span>:</p>
+      <div class="stack">
+        <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+        <div class="b sense">frage <span class="in">Welche Nummer soll weg?</span> und warte</div>
+        <div class="b list">lösche <span class="rep sense">Antwort</span> aus <span class="dd">todo</span></div>
+      </div>
+      <p>Trage ein paar Aufgaben ein und lösche eine in der Mitte.</p></span></label>
+
+    <div class="quiz" data-quiz="rutsch">
+      <b>Denkfrage:</b> In deiner Liste stehen 1: Sport, 2: Mathe, 3: Lesen. Du löschst Nummer 2. Was steht danach auf Platz 2?
+      <button class="opt" data-right="false" type="button">Mathe</button>
+      <button class="opt" data-right="true" type="button">Lesen</button>
+      <button class="opt" data-right="false" type="button">Nichts, Platz 2 bleibt leer</button>
+      <p class="fb" aria-live="polite"></p>
+    </div>
+  </div>
+</li>
+
+<!-- STUFE 2 -->
+<li class="step" data-step>
+  <div class="badge"><span>3</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag mine">Dein Look</span>
+    <h2>Mach sie zu deiner App</h2>
+    <p class="sub">Ab hier sieht keine App aus wie die andere.</p>
+
+    <label class="task"><input type="checkbox" data-id="s3a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Eigenes Hintergrundbild.</b> Tippe rechts unten auf die Bühne, dann oben auf <span class="hit">Hintergründe</span>. Unten links im Hintergrund-Symbol wählst du <span class="hit">Hochladen</span> oder die <span class="hit">Kamera</span>.</p>
+      <details><summary>Tipp zum Bild</summary><div class="in">
+        <p>Nimm ein Bild, das nicht zu dunkel ist. Sonst kannst du die Liste nicht mehr lesen.</p>
+        <p>Das alte, weiße Bühnenbild kannst du löschen, damit dein Bild ganz vorne ist.</p></div></details></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s3b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Buttons, die sich drücken.</b> Jeder Button hat zwei Kostüme. Ergänze bei <b>beiden</b> Buttons direkt nach dem Hut-Block:</p>
+      <div class="stack">
+        <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+        <div class="b look">wechsle zu Kostüm <span class="dd">button3-b</span></div>
+        <div class="b ctrl">warte <span class="in">0.2</span> Sekunden</div>
+        <div class="b look">wechsle zu Kostüm <span class="dd">button3-a</span></div>
+        <div class="b ctrl" style="background:#d9d9e3;color:#575E75;text-shadow:none">... hier geht dein Skript weiter</div>
+      </div></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s3c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Eigener App-Name.</b> Male mit dem Textwerkzeug <span class="hit">T</span> den Namen deiner App in ein Kostüm (zum Beispiel bei <b>Figur2</b>) und schiebe ihn oben auf die Bühne.</p></span></label>
+  </div>
+</li>
+
+<!-- STUFE 3 -->
+<li class="step" data-step>
+  <div class="badge"><span>4</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag pick">Wähle mindestens zwei</span>
+    <h2>Mach die Liste spannend</h2>
+    <p class="sub">Jedes Extra zeigt dir einen neuen Trick mit Listen und Variablen. Such dir aus, was dich reizt.</p>
+
+    <div class="extras">
+
+      <div class="extra">
+        <div class="head"><h3>Zähler: Wie viel ist noch offen?</h3><span class="lvl">leicht</span></div>
+        <p>Lege eine Variable <span class="hit">offen</span> an und setze den Haken davor, damit sie auf der Bühne steht.</p>
+        <div class="where">Wo? <i>Bühne</i></div><br>
+        <div class="stack">
+          <div class="b hat ev">Wenn <svg class="flag" viewBox="0 0 16 16"><path d="M3 14V2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M3 2.5c3-1.4 5 1.4 9 0v6c-4 1.4-6-1.4-9 0z" fill="#4C9F70" stroke="#fff" stroke-width="1"/></svg> angeklickt wird</div>
+          <div class="c ctrl">
+            <div class="b ctrl">wiederhole fortlaufend</div>
+            <div class="arm"><div class="b var">setze <span class="dd">offen</span> auf <span class="rep list">Länge von <span class="dd">todo</span></span></div></div>
+            <div class="foot"></div>
+          </div>
+        </div>
+        <label class="task"><input type="checkbox" data-id="s4a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="body"><p>Geschafft: Der Zähler ändert sich, wenn ich Aufgaben hinzufüge oder lösche.</p></span></label>
+      </div>
+
+      <div class="extra">
+        <div class="head"><h3>Zufallsaufgabe: Was mache ich jetzt?</h3><span class="lvl">mittel</span></div>
+        <p>Lege eine neue Figur an (zum Beispiel einen Würfel oder ein Fragezeichen) und baue:</p>
+        <div class="stack">
+          <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+          <div class="c ctrl">
+            <div class="b ctrl">falls <span class="cond"><span class="rep list">Länge von <span class="dd">todo</span></span> &gt; <span class="in">0</span></span>, dann</div>
+            <div class="arm"><div class="b look">sage <span class="rep list">Element <span class="rep op">Zufallszahl von <span class="in">1</span> bis <span class="rep list">Länge von <span class="dd">todo</span></span></span> von <span class="dd">todo</span></span> für <span class="in">3</span> Sekunden</div></div>
+            <div class="foot"></div>
+          </div>
+        </div>
+        <details><summary>Warum das &quot;falls&quot;?</summary><div class="in"><p>Ist die Liste leer, gibt es keine Zufallszahl von 1 bis 0. Das &quot;falls&quot; schützt deine App davor, sich komisch zu verhalten.</p></div></details>
+        <label class="task"><input type="checkbox" data-id="s4b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="body"><p>Geschafft: Die Figur nennt mir eine Aufgabe aus meiner Liste.</p></span></label>
+      </div>
+
+      <div class="extra">
+        <div class="head"><h3>Erledigt-Haken</h3><span class="lvl">mittel</span></div>
+        <p>Neue Figur mit Namen &quot;Erledigt&quot; (oder einem Häkchen als Kostüm):</p>
+        <div class="stack">
+          <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+          <div class="b sense">frage <span class="in">Welche Nummer ist erledigt?</span> und warte</div>
+          <div class="b list">ersetze Element <span class="rep sense">Antwort</span> von <span class="dd">todo</span> durch <span class="rep op">verbinde <span class="in">✔ </span> und <span class="rep list">Element <span class="rep sense">Antwort</span> von <span class="dd">todo</span></span></span></div>
+        </div>
+        <details><summary>Kein Häkchen auf der Tastatur?</summary><div class="in"><p>Schreib einfach <b>OK</b> mit Leerzeichen dahinter. Das ist genauso gut.</p></div></details>
+        <label class="task"><input type="checkbox" data-id="s4c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="body"><p>Geschafft: Erledigte Aufgaben tragen ein Häkchen vorne.</p></span></label>
+      </div>
+
+      <div class="extra">
+        <div class="head"><h3>Dringend: Aufgabe ganz nach oben</h3><span class="lvl">mittel</span></div>
+        <p>Kopiere deinen Hinzufügen-Button (Rechtsklick oder lange drücken, <span class="hit">duplizieren</span>), färbe ihn rot und tausche den letzten Block aus:</p>
+        <div class="stack">
+          <div class="b hat ev">Wenn diese Figur angeklickt wird</div>
+          <div class="b sense">frage <span class="in">Was ist dringend?</span> und warte</div>
+          <div class="b var">setze <span class="dd">aufgabe</span> auf <span class="rep sense">Antwort</span></div>
+          <div class="b list">füge <span class="rep var">aufgabe</span> bei <span class="in">1</span> in <span class="dd">todo</span> ein</div>
+        </div>
+        <label class="task"><input type="checkbox" data-id="s4d"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><span class="body"><p>Geschafft: Dringende Aufgaben landen auf Platz 1.</p></span></label>
+      </div>
+
+    </div>
+  </div>
+</li>
+
+<!-- STUFE 4 -->
+<li class="step" data-step>
+  <div class="badge"><span>5</span><svg class="tick" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+  <div class="card">
+    <span class="tag must">Pflicht</span>
+    <h2>Sichern und untersuchen</h2>
+    <p class="sub">Deine App soll nicht verloren gehen. Und du schaust einmal hinein, wie Scratch deine Liste speichert.</p>
+
+    <label class="task"><input type="checkbox" data-id="s5a"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Zweimal sichern.</b> Oben im Menü <span class="hit">Datei</span>: erst <span class="hit">Jetzt speichern</span> (liegt in deinem Konto), dann <span class="hit">Auf deinem Computer speichern</span>. Die Datei endet auf <span class="hit">.sb3</span> und landet in der Dateien-App.</p></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s5b"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Liste exportieren.</b> Trage mindestens vier Aufgaben ein. Drücke dann lange auf die Liste auf der Bühne und wähle <span class="hit">exportieren</span>. Öffne die Textdatei.</p>
+      <div class="quiz" data-quiz="export">
+        <b>Was fällt dir auf?</b> So stehen deine Einträge in der Datei:
+        <button class="opt" data-right="false" type="button">Alle in einer Zeile, mit Komma getrennt</button>
+        <button class="opt" data-right="true" type="button">Jeder Eintrag in einer eigenen Zeile</button>
+        <button class="opt" data-right="false" type="button">Mit der Nummer davor</button>
+        <p class="fb" aria-live="polite"></p>
+      </div></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s5c"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Von Hand ergänzen und zurückholen.</b> Schreibe in der Textdatei eine neue Zeile dazu und speichere sie. Drücke dann lange auf die Liste und wähle <span class="hit">importieren</span>. Ist dein neuer Eintrag da?</p>
+      <details><summary>Hängst du fest?</summary><div class="in"><p>Beim Import ersetzt Scratch den Inhalt der Liste. Das ist gewollt. Deshalb hast du vorher exportiert.</p></div></details></span></label>
+
+    <label class="task"><input type="checkbox" data-id="s5d"><span class="box"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      <span class="body"><p><b>Zeig deine App.</b> Zeige sie einem Mitschüler und erkläre in einem Satz, wofür die Variable und die Liste da sind.</p></span></label>
+  </div>
+</li>
+
+<!-- STUFE 5 -->
+<li class="step" data-step="info">
+  <div class="badge"><span>6</span></div>
+  <div class="card">
+    <div class="final">
+      <h2>Und danach?</h2>
+      <p>Deine Datei ist dein Schatz. Bewahre sie gut auf.</p>
+      <p>Im nächsten Schritt schauen wir, ob aus deinem Projekt eine App werden kann, die du mit einem eigenen Symbol auf dem Startbildschirm deines iPads öffnest.</p>
+    </div>
+  </div>
+</li>
+
+</ol>
+
+<footer>Vorlage: Projekt &quot;To-Do App&quot; auf scratch.mit.edu · Anleitung für Informatik 8</footer>
+</div>
+
+<script>
+(function(){
+  var KEY="todo-app-anleitung-v1";
+  var state={};
+  try{state=JSON.parse(localStorage.getItem(KEY)||"{}")||{};}catch(e){state={};}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+
+  var boxes=[].slice.call(document.querySelectorAll('input[type=checkbox][data-id]'));
+  var steps=[].slice.call(document.querySelectorAll('[data-step]'));
+  var pBar=document.getElementById('pBar'),pCount=document.getElementById('pCount');
+
+  function refresh(){
+    var done=boxes.filter(function(b){return b.checked;}).length;
+    pCount.textContent=done+" von "+boxes.length+" geschafft";
+    pBar.style.width=(boxes.length?done/boxes.length*100:0)+"%";
+    steps.forEach(function(s){
+      if(s.getAttribute('data-step')==='info')return;
+      var inS=[].slice.call(s.querySelectorAll('input[type=checkbox][data-id]'));
+      var all=inS.length&&inS.every(function(b){return b.checked;});
+      /* Stufe 3 gilt als fertig, sobald zwei Extras abgehakt sind */
+      if(inS.length===4&&s.querySelector('.extras')){
+        all=inS.filter(function(b){return b.checked;}).length>=2;
+      }
+      s.classList.toggle('done',!!all);
+    });
+    boxes.forEach(function(b){var t=b.closest('.task');if(t)t.classList.toggle('checked',b.checked);});
+  }
+
+  boxes.forEach(function(b){
+    b.checked=!!state[b.getAttribute('data-id')];
+    b.addEventListener('change',function(){
+      state[b.getAttribute('data-id')]=b.checked;save();refresh();
+    });
+  });
+  refresh();
+
+  /* Denkfragen: Ankreuzen mit sofortiger Rückmeldung */
+  [].forEach.call(document.querySelectorAll('.quiz'),function(q){
+    var fb=q.querySelector('.fb');
+    [].forEach.call(q.querySelectorAll('.opt'),function(o){
+      o.addEventListener('click',function(ev){
+        ev.preventDefault();ev.stopPropagation();
+        var right=o.getAttribute('data-right')==='true';
+        o.classList.remove('right','wrong');o.classList.add(right?'right':'wrong');
+        fb.className='fb '+(right?'ok':'no');
+        var msg={
+          rutsch:['Richtig. Beim Löschen rutschen alle nachfolgenden Einträge einen Platz nach vorne.','Noch nicht. Probiere es in deiner Liste aus und schau nach.'],
+          export:['Richtig. Scratch schreibt jeden Eintrag in eine eigene Zeile.','Noch nicht. Schau noch einmal in die Textdatei.'],
+          var1:['Richtig. Eine Variable hält immer nur einen Wert. Der neue ersetzt den alten.','Noch nicht. Probiere es aus: Tippe zweimal nacheinander auf verschiedene setze-Blöcke.'],
+          liste1:['Richtig. Länge heißt hier: wie viele Einträge in der Liste stehen.','Noch nicht. Tippe auf den Block und vergleiche mit deiner Liste auf der Bühne.'],
+          warum:['Richtig. Eine Variable ist ein einzelnes Fach, eine Liste ist ein ganzes Regal.','Noch nicht. Denke daran, wie viele Aufgaben in die App passen sollen.']
+        }[q.getAttribute('data-quiz')];
+        fb.textContent=right?msg[0]:msg[1];
+      });
+    });
+  });
+
+  /* Zuordnung Variable oder Liste */
+  [].forEach.call(document.querySelectorAll('.srow'),function(r){
+    [].forEach.call(r.querySelectorAll('button'),function(btn){
+      btn.addEventListener('click',function(ev){
+        ev.preventDefault();ev.stopPropagation();
+        [].forEach.call(r.querySelectorAll('button'),function(x){x.classList.remove('picked');});
+        btn.classList.add('picked');
+        var right=btn.getAttribute('data-pick')===r.getAttribute('data-answer');
+        r.classList.remove('right','wrong');r.classList.add(right?'right':'wrong');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
